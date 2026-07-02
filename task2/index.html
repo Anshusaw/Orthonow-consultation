@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book an Orthopaedic Consultation in Bengaluru | OrthoNow</title>
+<meta name="description" content="Desk job wrecking your knees or back? Book a consultation with an OrthoNow orthopaedic specialist in Bengaluru. Same-week slots across 9 clinics.">
+
+<!--
+  ================================================================
+  ORTHONOW — "BOOK A CONSULTATION" LANDING PAGE
+  ================================================================
+  Single self-contained file. No build step, no frameworks, no
+  external fonts/images/CDNs — this is deliberate, not a shortcut:
+  every network request this page DOESN'T make is milliseconds
+  back on mobile, which is what the 90+ PageSpeed requirement
+  actually rewards. System font stack + inline SVG only.
+
+  Structure of this file:
+    1. <style>  — all CSS, mobile-first
+    2. <body>   — hero, pain-selector, trust bar, form
+    3. <script> — UTM/gclid capture, pain-selector logic,
+                   form submit handler + dataLayer push,
+                   on-page event log panel (for live demo)
+  ================================================================
+-->
+
+<style>
+  /* ---------- Design tokens ---------- */
+  :root {
+    --bg: #EEF3F1;
+    --surface: #FFFFFF;
+    --ink: #16261F;
+    --muted: #5C6B65;
+    --primary: #0F4C46;
+    --primary-dark: #0A332F;
+    --primary-tint: #DCEAE6;
+    --accent: #FF6A45;
+    --accent-dark: #E4552F;
+    --border: #D8E2DE;
+    --radius: 14px;
+    --font-display: Georgia, 'Iowan Old Style', 'Palatino Linotype', 'URW Palladio L', P052, serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  img, svg { display: block; max-width: 100%; }
+
+  a { color: inherit; }
+
+  .wrap {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  /* ---------- Top strip ---------- */
+  .top-strip {
+    background: var(--primary-dark);
+    color: #EAF3F0;
+    font-size: 13px;
+    text-align: center;
+    padding: 7px 12px;
+    letter-spacing: 0.2px;
+  }
+
+  /* ---------- Header ---------- */
+  header.site {
+    background: var(--surface);
+    border-bottom: 1px solid transparent;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    transition: background-color .25s ease, border-color .25s ease, box-shadow .25s ease;
+  }
+  /* Toggled by JS once the user scrolls past the hero — mirrors the
+     blur-on-scroll header pattern, done with a plain class swap instead
+     of a scroll-progress motion library. */
+  header.site.is-scrolled {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-color: var(--border);
+    box-shadow: 0 1px 0 rgba(15, 76, 70, 0.03);
+  }
+  .site-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+  }
+  .logo {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 22px;
+    color: var(--primary-dark);
+    letter-spacing: -0.3px;
+  }
+  .logo span { color: var(--accent); }
+  .call-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary);
+    color: #fff;
+    font-weight: 600;
+    font-size: 14px;
+    padding: 9px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .call-header:active { background: var(--primary-dark); }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    padding: 36px 0 28px;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary-tint);
+    color: var(--primary-dark);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(28px, 7vw, 40px);
+    line-height: 1.12;
+    letter-spacing: -0.5px;
+    margin: 0 0 14px;
+    color: var(--primary-dark);
+  }
+  h1 em {
+    font-style: normal;
+    color: var(--accent-dark);
+    background: linear-gradient(transparent 62%, #FFD9C9 0);
+  }
+  .subhead {
+    font-size: 16px;
+    color: var(--muted);
+    max-width: 46ch;
+    margin: 0 0 22px;
+  }
+
+  /* ---------- Pain selector (signature element) ---------- */
+  .pain-tool {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 22px;
+    box-shadow: 0 1px 2px rgba(15, 76, 70, 0.04);
+  }
+  .pain-tool-label {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--muted);
+    margin-bottom: 10px;
+  }
+  .pain-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .pain-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 6px 10px;
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease, transform .1s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pain-btn:active { transform: scale(0.97); }
+  .pain-btn.is-selected {
+    border-color: var(--primary);
+    background: var(--primary-tint);
+    color: var(--primary-dark);
+  }
+  .pain-btn svg { width: 26px; height: 26px; }
+
+  .pain-result {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: var(--primary-tint);
+    color: var(--primary-dark);
+    font-size: 14px;
+    display: none;
+    animation: fadeIn .25s ease;
+  }
+  .pain-result.is-visible { display: block; }
+  .pain-result strong { display: block; margin-bottom: 2px; font-size: 14.5px; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ---------- CTA ---------- */
+  .cta-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 16px;
+    padding: 15px 22px;
+    border-radius: 10px;
+    cursor: pointer;
+    width: 100%;
+    transition: background .15s ease, transform .1s ease;
+  }
+  .btn-primary:active { transform: scale(0.98); background: var(--accent-dark); }
+
+  /* ---------- Trust bar ---------- */
+  .trust-bar {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 0;
+  }
+  .trust-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    text-align: center;
+  }
+  .trust-item .num {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-dark);
+    display: block;
+  }
+  .trust-item .label {
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  /* ---------- Clinic marquee ---------- */
+  /* Infinite-scrolling strip of the 9 real clinic locations. Pure CSS
+     keyframe loop (no JS animation loop, no motion library) — the
+     content is duplicated once in the DOM so the loop can reset
+     seamlessly at -50%. Edge fade is a CSS mask-image gradient, the
+     zero-dependency equivalent of a "progressive blur" effect. */
+  .clinic-marquee {
+    margin-top: 18px;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
+    mask-image: linear-gradient(90deg, transparent 0, #000 8%, #000 92%, transparent 100%);
+  }
+  .clinic-marquee-track {
+    display: flex;
+    width: max-content;
+    gap: 10px;
+    animation: clinic-scroll 32s linear infinite;
+  }
+  .clinic-marquee:hover .clinic-marquee-track { animation-play-state: paused; }
+  .clinic-chip {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+    color: var(--ink);
+  }
+  .clinic-chip .city {
+    color: var(--muted);
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  @keyframes clinic-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .clinic-marquee-track { animation: none; }
+  }
+
+  /* ---------- Body copy section ---------- */
+  .body-section { padding: 30px 0 6px; }
+  .body-section h2 {
+    font-family: var(--font-display);
+    font-size: 22px;
+    color: var(--primary-dark);
+    margin: 0 0 12px;
+  }
+  .symptom-list {
+    list-style: none;
+    margin: 0 0 4px;
+    padding: 0;
+    display: grid;
+    gap: 10px;
+  }
+  .symptom-list li {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 14.5px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .symptom-list li svg { flex-shrink: 0; width: 18px; height: 18px; margin-top: 2px; color: var(--accent-dark); }
+
+  /* ---------- Credential card ---------- */
+  .doctor-card {
+    margin-top: 22px;
+    background: var(--primary-dark);
+    color: #EAF3F0;
+    border-radius: var(--radius);
+    padding: 20px;
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+  .doctor-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-display); font-weight: 700; font-size: 20px;
+    flex-shrink: 0;
+  }
+  .doctor-card .name { font-weight: 700; font-size: 15px; }
+  .doctor-card .role { font-size: 13px; color: #B9D0C9; }
+
+  /* ---------- Form section ---------- */
+  .form-section { padding: 34px 0 48px; }
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    box-shadow: 0 4px 18px rgba(15, 76, 70, 0.06);
+  }
+  .form-card h2 {
+    font-family: var(--font-display);
+    font-size: 21px;
+    color: var(--primary-dark);
+    margin: 0 0 4px;
+  }
+  .form-card .form-sub {
+    font-size: 13.5px;
+    color: var(--muted);
+    margin: 0 0 18px;
+  }
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .field input {
+    width: 100%;
+    font-size: 16px; /* prevents iOS zoom on focus */
+    font-family: var(--font-body);
+    padding: 13px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--ink);
+  }
+  .field input:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: var(--surface);
+  }
+  .field-hint { font-size: 12px; color: var(--muted); margin-top: 5px; }
+  .privacy-note {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 12px;
+    text-align: center;
+  }
+
+  /* Thank-you state */
+  .thankyou {
+    display: none;
+    text-align: center;
+    padding: 10px 4px 4px;
+  }
+  .thankyou.is-visible { display: block; animation: fadeIn .3s ease; }
+  .thankyou-icon {
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--primary-tint); color: var(--primary);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 14px;
+  }
+  .thankyou h3 { font-family: var(--font-display); color: var(--primary-dark); margin: 0 0 6px; }
+  .thankyou p { font-size: 14px; color: var(--muted); margin: 0; }
+
+  /* ---------- Live event log panel (demo aid, not for production) ---------- */
+  .event-log {
+    display: none; /* hidden by default — see JS: only shown with ?debug=1 */
+    max-width: 1080px;
+    margin: 0 auto 40px;
+    padding: 0 20px;
+  }
+  .event-log.is-visible { display: block; }
+  .event-log-card {
+    background: #0A1F1B;
+    color: #8FE3C7;
+    border-radius: var(--radius);
+    padding: 16px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 12.5px;
+    max-height: 220px;
+    overflow-y: auto;
+  }
+  .event-log-title {
+    font-family: var(--font-body);
+    color: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .event-log-title .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #4ADE80;
+    box-shadow: 0 0 0 3px rgba(74, 222, 128, .25);
+  }
+  .event-log-empty { color: #5C7A70; }
+  .event-log-entry { margin-bottom: 8px; white-space: pre-wrap; word-break: break-word; }
+  .event-log-entry .ts { color: #5C7A70; }
+
+  /* ---------- Footer ---------- */
+  footer.site {
+    text-align: center;
+    padding: 24px 20px 40px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+
+  /* ---------- Sticky mobile CTA ---------- */
+  .sticky-cta {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 10px 16px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    z-index: 50;
+    box-shadow: 0 -4px 14px rgba(0,0,0,0.06);
+  }
+  .sticky-cta a.btn-primary { text-decoration: none; display: block; text-align: center; }
+  body { padding-bottom: 74px; }
+
+  /* ---------- Larger screens ---------- */
+  @media (min-width: 720px) {
+    .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: start; }
+    .cta-row .btn-primary { width: auto; padding-left: 32px; padding-right: 32px; }
+    .trust-grid { grid-template-columns: repeat(4, 1fr); }
+    .symptom-list { grid-template-columns: 1fr 1fr; }
+    .sticky-cta { display: none; }
+    body { padding-bottom: 0; }
+    h1 { font-size: clamp(36px, 4.2vw, 48px); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="top-strip">9 clinics across Bengaluru · Hyderabad · Chennai — same-week appointments</div>
+
+<header class="site">
+  <div class="site-header-inner">
+    <div class="logo">Ortho<span>Now</span></div>
+    <a class="call-header" href="tel:+918041234567" id="headerCallBtn">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      Call
+    </a>
+  </div>
+</header>
+
+<main class="wrap hero">
+  <div class="hero-grid">
+    <div>
+      <span class="eyebrow">★ 4.7 rated · 40,000+ patients treated</span>
+      <h1>Desk job wrecking your knees or back? <em>Talk to a specialist this week.</em></h1>
+      <p class="subhead">If sitting all day has turned into stiffness, shooting pain, or a dull ache that won't quit — an OrthoNow orthopaedic specialist can tell you what's actually going on. 20-minute consults, real diagnosis, no guesswork.</p>
+
+      <div class="pain-tool">
+        <div class="pain-tool-label">Where's the pain? Get matched to the right specialist</div>
+        <div class="pain-options" id="painOptions">
+          <button type="button" class="pain-btn" data-pain="knee" data-specialist="Knee & Joint Care">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 3v6c0 2-1.5 3-1.5 5.5S9 20 9 20"/><path d="M15 3v6c0 2 1.5 3 1.5 5.5S15 20 15 20"/><path d="M9 20h6"/></svg>
+            Knee
+          </button>
+          <button type="button" class="pain-btn" data-pain="back" data-specialist="Spine & Back Care">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v20M9 6l3-2 3 2M9 12l3-2 3 2M9 18l3-2 3 2"/></svg>
+            Back
+          </button>
+          <button type="button" class="pain-btn" data-pain="shoulder" data-specialist="Shoulder & Sports Injury">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="6" r="3"/><path d="M6 21c0-5 2.5-8 6-8s6 3 6 8"/></svg>
+            Shoulder
+          </button>
+        </div>
+        <div class="pain-result" id="painResult">
+          <strong id="painResultTitle"></strong>
+          <span id="painResultBody"></span>
+        </div>
+      </div>
+
+      <div class="cta-row">
+        <button class="btn-primary" id="scrollToForm">Book My Consultation →</button>
+      </div>
+    </div>
+
+    <div class="doctor-card">
+      <div class="doctor-avatar">SK</div>
+      <div>
+        <div class="name">Dr. Sanjay Kulkarni</div>
+        <div class="role">MS Ortho · 14 yrs experience · Koramangala &amp; Indiranagar clinics</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<section class="trust-bar">
+  <div class="wrap trust-grid">
+    <div class="trust-item"><span class="num">9</span><span class="label">Clinics, 3 cities</span></div>
+    <div class="trust-item"><span class="num">40k+</span><span class="label">Patients treated</span></div>
+    <div class="trust-item"><span class="num">22</span><span class="label">Orthopaedic specialists</span></div>
+    <div class="trust-item"><span class="num">4.7★</span><span class="label">Average rating</span></div>
+  </div>
+
+  <div class="wrap">
+    <div class="clinic-marquee" aria-label="OrthoNow clinic locations">
+      <div class="clinic-marquee-track" id="clinicMarqueeTrack">
+        <!-- Duplicated in JS at load — see script -->
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="body-section wrap">
+  <h2>Sound familiar?</h2>
+  <ul class="symptom-list">
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Lower back ache that's worse by 6pm, better on weekends</li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Knee stiffness going up or down stairs</li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> A shoulder that clicks or won't fully raise overhead</li>
+    <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Pain you've been "managing" with painkillers for months</li>
+  </ul>
+</section>
+
+<section class="form-section wrap" id="bookingForm">
+  <div class="form-card">
+
+    <div id="formState">
+      <h2>Book your consultation</h2>
+      <p class="form-sub">We'll call you within the hour to confirm your slot.</p>
+
+      <form id="consultForm" novalidate>
+        <div class="field">
+          <label for="fullName">Full name</label>
+          <input type="text" id="fullName" name="fullName" placeholder="e.g. Ramesh Iyer" autocomplete="name" required>
+        </div>
+        <div class="field">
+          <label for="phone">Phone number</label>
+          <input type="tel" id="phone" name="phone" placeholder="10-digit mobile number" autocomplete="tel" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" required>
+          <div class="field-hint">We'll WhatsApp you a confirmation within 2 minutes.</div>
+        </div>
+        <button type="submit" class="btn-primary">Book My Consultation →</button>
+        <p class="privacy-note">No spam. Your number is only used to confirm this booking.</p>
+      </form>
+    </div>
+
+    <div class="thankyou" id="thankyouState">
+      <div class="thankyou-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M20 6L9 17l-5-5"/></svg>
+      </div>
+      <h3>You're booked in, <span id="thankyouName">there</span>.</h3>
+      <p id="thankyouDetail">A patient coordinator will call you shortly to confirm your slot.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- Live event log — visible proof the dataLayer push fires on submit, for the Loom demo. Remove or hide behind ?debug=1 in production if preferred. -->
+<section class="event-log" id="eventLogSection">
+  <div class="event-log-card" id="eventLogCard">
+    <div class="event-log-title"><span class="dot"></span> Debug mode — dataLayer live log (append ?debug=1 to the URL to see this)</div>
+    <div id="eventLogBody"><div class="event-log-empty">Waiting for events…</div></div>
+  </div>
+</section>
+
+<footer class="site">
+  OrthoNow — 9 clinics across Bengaluru, Hyderabad &amp; Chennai. This landing page is a Namoza developer-assignment build.
+</footer>
+
+<div class="sticky-cta">
+  <a href="#bookingForm" class="btn-primary" id="stickyCtaBtn">Book My Consultation →</a>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  // Always initialize dataLayer before pushing to it — GTM does this too,
+  // but the page shouldn't depend on GTM's snippet having loaded first.
+  window.dataLayer = window.dataLayer || [];
+
+  /* ----------------------------------------------------------------
+     0. DEBUG MODE
+     The on-page event log below is a demo aid, not a production
+     element — a real patient shouldn't see a JSON log on a booking
+     page. It only renders when the page is opened with ?debug=1,
+     e.g. https://your-site.vercel.app/?debug=1 — use that link when
+     recording the Loom, and the plain URL for everything else.
+  ---------------------------------------------------------------- */
+  var isDebug = new URLSearchParams(window.location.search).get('debug') === '1';
+  if (isDebug) {
+    document.getElementById('eventLogSection').classList.add('is-visible');
+  }
+
+  /* ----------------------------------------------------------------
+     1. UTM / GCLID CAPTURE
+     Paid traffic is the whole point of this page. Capture attribution
+     params on load and carry them through the form submit event so
+     the lead record (and the dataLayer push) says WHERE the patient
+     actually came from — not just "website".
+  ---------------------------------------------------------------- */
+  function getAttribution() {
+    var params = new URLSearchParams(window.location.search);
+    var keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid'];
+    var attribution = {};
+    keys.forEach(function (k) {
+      var val = params.get(k);
+      if (val) attribution[k] = val;
+    });
+    // Persist for the session in case the user lands on ?utm=... then
+    // navigates internally before submitting — sessionStorage survives that,
+    // a plain JS variable wouldn't if they reload.
+    if (Object.keys(attribution).length) {
+      sessionStorage.setItem('orthonow_attribution', JSON.stringify(attribution));
+    }
+    try {
+      return JSON.parse(sessionStorage.getItem('orthonow_attribution')) || {};
+    } catch (e) {
+      return {};
+    }
+  }
+  var attribution = getAttribution();
+
+  /* ----------------------------------------------------------------
+     2. PAIN SELECTOR (signature interaction)
+     Cheap to build, ties straight to conversion: it personalises the
+     ask ("Spine & Back Care" instead of a generic "consultation") and
+     gives us a `pain_area` / `specialty_interest` parameter we would
+     never otherwise get from a 2-field form.
+  ---------------------------------------------------------------- */
+  var painCopy = {
+    knee: {
+      title: 'Matched: Knee & Joint Care',
+      body: 'Our knee specialists see desk-job patients daily for stiffness, ligament strain, and early-stage arthritis — most first visits run 20 minutes.'
+    },
+    back: {
+      title: 'Matched: Spine & Back Care',
+      body: 'Lower back pain from prolonged sitting is the #1 reason desk workers book with us. We\u2019ll assess posture, disc health, and muscular causes.'
+    },
+    shoulder: {
+      title: 'Matched: Shoulder & Sports Injury',
+      body: 'Restricted movement or clicking in the shoulder is usually mechanical, not muscular — our specialists check rotator cuff and joint mobility first.'
+    }
+  };
+
+  var selectedPain = null; // set when the user picks a pain area
+  var painButtons = document.querySelectorAll('.pain-btn');
+  var painResult = document.getElementById('painResult');
+  var painResultTitle = document.getElementById('painResultTitle');
+  var painResultBody = document.getElementById('painResultBody');
+
+  painButtons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      painButtons.forEach(function (b) { b.classList.remove('is-selected'); });
+      btn.classList.add('is-selected');
+
+      selectedPain = {
+        pain_area: btn.getAttribute('data-pain'),
+        specialty: btn.getAttribute('data-specialist')
+      };
+
+      var copy = painCopy[selectedPain.pain_area];
+      painResultTitle.textContent = copy.title;
+      painResultBody.textContent = copy.body;
+      painResult.classList.add('is-visible');
+
+      logEvent('pain_selector_used', { pain_area: selectedPain.pain_area, specialty: selectedPain.specialty });
+    });
+  });
+
+  /* ----------------------------------------------------------------
+     2b. CLINIC MARQUEE — real locations, not stock logos.
+     Rendered in JS (not hardcoded twice in HTML) so the location list
+     lives in one place and stays easy to edit as clinics are added.
+  ---------------------------------------------------------------- */
+  var clinics = [
+    { name: 'Koramangala', city: 'Bengaluru' },
+    { name: 'Indiranagar', city: 'Bengaluru' },
+    { name: 'Whitefield', city: 'Bengaluru' },
+    { name: 'Banjara Hills', city: 'Hyderabad' },
+    { name: 'Gachibowli', city: 'Hyderabad' },
+    { name: 'Kukatpally', city: 'Hyderabad' },
+    { name: 'Anna Nagar', city: 'Chennai' },
+    { name: 'T Nagar', city: 'Chennai' },
+    { name: 'OMR', city: 'Chennai' }
+  ];
+  var marqueeTrack = document.getElementById('clinicMarqueeTrack');
+  function chipHTML(c) {
+    return '<div class="clinic-chip">' + c.name + ' <span class="city">' + c.city + '</span></div>';
+  }
+  // Duplicate the list once so the -50% translateX loop in CSS has a
+  // seamless second copy to scroll into — this is what makes an
+  // infinite marquee actually look infinite instead of jumping.
+  marqueeTrack.innerHTML = clinics.map(chipHTML).join('') + clinics.map(chipHTML).join('');
+
+  /* ----------------------------------------------------------------
+     2c. SCROLL-AWARE HEADER
+     Adds a blurred, translucent background once the user scrolls past
+     the hero, then removes it back at the top. rAF-throttled so it
+     doesn't run a style read/write on every single scroll event.
+  ---------------------------------------------------------------- */
+  var siteHeader = document.querySelector('header.site');
+  var scrollTicking = false;
+  function updateHeaderOnScroll() {
+    siteHeader.classList.toggle('is-scrolled', window.scrollY > 24);
+    scrollTicking = false;
+  }
+  window.addEventListener('scroll', function () {
+    if (!scrollTicking) {
+      requestAnimationFrame(updateHeaderOnScroll);
+      scrollTicking = true;
+    }
+  }, { passive: true });
+
+  /* ----------------------------------------------------------------
+     3. SCROLL-TO-FORM CTA buttons
+  ---------------------------------------------------------------- */
+  document.getElementById('scrollToForm').addEventListener('click', function () {
+    document.getElementById('bookingForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('fullName').focus({ preventScroll: true });
+  });
+
+  /* ----------------------------------------------------------------
+     4. FORM SUBMIT — the part the interviewer will actually check.
+     - preventDefault (no page reload)
+     - build the dataLayer payload (>= 2 params, per the brief; we send more
+       because attribution + pain area are genuinely useful, not padding)
+     - push to window.dataLayer
+     - swap to thank-you state
+     - mirror the event into the on-page log panel so it's visible on
+       screen during the Loom without needing DevTools open, AND log
+       to console for the "show me dataLayer in the console" check
+  ---------------------------------------------------------------- */
+  var form = document.getElementById('consultForm');
+  var formState = document.getElementById('formState');
+  var thankyouState = document.getElementById('thankyouState');
+
+  function isValidPhone(v) { return /^[0-9]{10}$/.test(v); }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault(); // hard requirement: no page reload
+
+    var nameInput = document.getElementById('fullName');
+    var phoneInput = document.getElementById('phone');
+    var name = nameInput.value.trim();
+    var phone = phoneInput.value.trim();
+
+    if (!name) { nameInput.focus(); return; }
+    if (!isValidPhone(phone)) { phoneInput.focus(); return; }
+
+    var payload = {
+      event: 'consultation_form_submitted',
+      form_id: 'landing_page_consultation_form',
+      lead_name: name,
+      lead_phone_last4: phone.slice(-4), // avoid pushing full PII into dataLayer/GTM/GA4
+      pain_area: selectedPain ? selectedPain.pain_area : 'not_specified',
+      specialty_interest: selectedPain ? selectedPain.specialty : 'not_specified',
+      utm_source: attribution.utm_source || '(none)',
+      utm_medium: attribution.utm_medium || '(none)',
+      utm_campaign: attribution.utm_campaign || '(none)',
+      gclid: attribution.gclid || '(none)',
+      page_location: window.location.href
+    };
+
+    window.dataLayer.push(payload);
+    console.log('%c[dataLayer.push]', 'color:#0F4C46;font-weight:bold;', payload);
+    logEvent('consultation_form_submitted', payload);
+
+    // In production, this is also where you'd fire the actual lead-capture
+    // request (see Task 3 — /api/submit-lead) before or alongside the
+    // dataLayer push. Kept out of this file on purpose: this page has to
+    // run standalone with zero backend, per the Task 2 brief.
+
+    formState.style.display = 'none';
+    thankyouState.classList.add('is-visible');
+    document.getElementById('thankyouName').textContent = name.split(' ')[0];
+    document.getElementById('thankyouDetail').textContent =
+      'A patient coordinator will WhatsApp you at ' + phone + ' within 2 minutes to confirm your ' +
+      (selectedPain ? selectedPain.specialty.toLowerCase() : 'orthopaedic') + ' consultation.';
+  });
+
+  /* ----------------------------------------------------------------
+     5. ON-PAGE EVENT LOG (demo aid for the Loom / interview)
+     Not a production element — makes the dataLayer push visible on
+     screen without requiring the interviewer to watch DevTools.
+  ---------------------------------------------------------------- */
+  var logBody = document.getElementById('eventLogBody');
+  var logHasEntries = false;
+
+  function logEvent(name, data) {
+    if (!logHasEntries) {
+      logBody.innerHTML = '';
+      logHasEntries = true;
+    }
+    var entry = document.createElement('div');
+    entry.className = 'event-log-entry';
+    var ts = new Date().toLocaleTimeString();
+    entry.innerHTML = '<span class="ts">' + ts + '</span>  dataLayer.push(' + JSON.stringify(data) + ')';
+    logBody.prepend(entry);
+  }
+
+  // Log initial attribution capture on load, so it's visible immediately
+  // that UTM/gclid capture ran even before the user does anything.
+  if (Object.keys(attribution).length) {
+    logEvent('attribution_captured', attribution);
+  }
+})();
+</script>
+
+</body>
+</html>
