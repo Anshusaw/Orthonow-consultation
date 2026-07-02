@@ -1,6 +1,6 @@
 # OrthoNow — Namoza Developer Assignment
 
-Submission for Developer – Position 1 (Client Web + Martech).
+GTM event tracking schema, a conversion-optimized landing page, and a HubSpot/WhatsApp lead integration for OrthoNow, a 9-clinic orthopaedic chain. Submission for Developer – Position 1 (Client Web + Martech).
 
 ```
 ├── task1/
@@ -27,7 +27,7 @@ Submission for Developer – Position 1 (Client Web + Martech).
    - `task3/README.md` ← paste the integration write-up
    - `README.md` (this file) at the project root
 5. **Preview the landing page instantly, no server needed:** in VS Code's file explorer, right-click `task2/index.html` → if you have the **Live Server** extension (Extensions icon in the sidebar → search "Live Server" by Ritwick Dey → Install), click **"Open with Live Server."** Otherwise just double-click `index.html` in your OS file explorer — it opens directly in the browser since it's a self-contained file with no build step.
-6. **Watch the dataLayer push live:** open the page, press `F12` (or right-click → Inspect) to open DevTools, click the **Console** tab, fill in the form, and submit. You'll see the logged `dataLayer.push(...)` object in the console, and the on-page green-tinted log panel at the bottom of the page will show the same event in real time — that panel exists specifically so you can demo this in the Loom without narrating over DevTools.
+6. **Watch the dataLayer push live:** open the page, press `F12` (or right-click → Inspect) to open DevTools, click the **Console** tab, fill in the form, and submit. You'll see the logged `dataLayer.push(...)` object in the console, and the on-page green-tinted log panel at the bottom of the page will show the same event in real time (append `?debug=1` to the URL to see it — it's hidden by default) — that panel exists specifically so you can demo this in the Loom without narrating over DevTools.
 
 ---
 
